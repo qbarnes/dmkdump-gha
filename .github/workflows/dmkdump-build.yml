@@ -83,8 +83,9 @@ jobs:
         run: echo "build_arch=${build_arch}" >> $GITHUB_OUTPUT
 
       - name: Build all cross versions
-        run:  make -f Makefile.cross \
-          "BUILDS=NATIVE MSDOS MSWIN32 MSWIN64" \
+        run: >
+          make -f Makefile.cross
+          "BUILDS=NATIVE MSDOS MSWIN32 MSWIN64"
           ${{ inputs.make_build_target }}
 
       - name: Add linux tarball to "release_files"
