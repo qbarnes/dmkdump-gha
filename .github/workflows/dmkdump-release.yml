@@ -1,0 +1,57 @@
+name: dmkdump-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_name:
+        description: Name of package
+        required: false
+        type: string
+        default: "dmkdump"
+
+
+jobs:
+  call_build:
+    uses: ./.github/workflows/dmkdump-build.yml
+    with:
+      make_build_target: "release"
+    secrets: inherit
+
+  release:
+    name: Make Release
+    needs: call_build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Show version
+        run: echo needs.call_build.outputs.build_version=${{ needs.call_build.outputs.build_version }}
+
+      - name: Create tag
+        uses: rickstaa/action-create-tag@v1
+        with:
+          tag: "v${{ needs.call_build.outputs.build_version }}"
+
+      - name: Make artifacts directory
+        run: mkdir github_artifacts
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: github_artifacts
+          name: ${{ needs.call_build.outputs.build_artifacts_name }}
+
+      - name: Check for files
+        run: ls -l . github_artifacts
+
+      - name: Move release description
+        run: mv github_artifacts/release_description .
+
+      - uses: ncipollo/release-action@v1
+        with:
+          artifactErrorsFailBuild: true
+          makeLatest: true
+          name: "Release ${{ needs.call_build.outputs.build_version }}"
+          tag: "v${{ needs.call_build.outputs.build_version }}"
+          bodyFile: release_description
+          artifacts: github_artifacts/*
