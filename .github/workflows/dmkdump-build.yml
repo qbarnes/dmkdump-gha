@@ -57,7 +57,8 @@ jobs:
 
       - name: Prep cross-compilers and PATH
         run: |
-          apt install mingw-w64
+          sudo apt-get update
+          sudo apt-get install mingw-w64
           wget -nv https://github.com/andrewwutw/build-djgpp/releases/download/v3.1/djgpp-linux64-gcc1020.tar.bz2
           tar -xf djgpp-linux64-gcc1020.tar.bz2
           echo "$PWD/djgpp/bin" >> $GITHUB_PATH
