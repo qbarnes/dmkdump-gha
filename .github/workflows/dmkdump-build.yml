@@ -12,7 +12,7 @@ on:
         description: Make build target
         required: false
         type: string
-        default: "release"
+        default: "fullrelease"
 
   workflow_call:
     inputs:
@@ -25,7 +25,7 @@ on:
         description: Make build target
         required: false
         type: string
-        default: "release"
+        default: "fullrelease"
     outputs:
       package_name:
         description: Name of package
@@ -113,7 +113,7 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
 
       - name: Show build files
-        run: ls -lR .
+        run: ls -l . build.*
 
       - name: Show "release_files"
         run: |
