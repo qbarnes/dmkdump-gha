@@ -1,6 +1,6 @@
 include defines.mk product.mk
 
-TARGET_OS ?= NATIVE
+TARGET_OS ?= $(firstword $(BUILDS))
 build_dir  = build
 
 linux_targets = $(PRODUCT)

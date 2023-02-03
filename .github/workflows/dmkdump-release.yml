@@ -39,7 +39,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: github_artifacts
-          name: ${{ needs.call_build.outputs.build_artifacts_name }}
+          name: ${{ needs.call_build.outputs.build_artifacts_names }}
 
       - name: Check for files
         run: ls -l . github_artifacts
