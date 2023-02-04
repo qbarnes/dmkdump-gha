@@ -42,7 +42,7 @@ on:
 
 
 jobs:
-  build_linux:
+  build_linux_x86_64:
     runs-on: ubuntu-latest
     outputs:
       build_artifacts_names: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
@@ -65,8 +65,8 @@ jobs:
       - id: build_arch
         run: echo "build_arch=${build_arch}" >> $GITHUB_OUTPUT
 
-      - name: Build Linux version
-        run: make -f Makefile.cross "BUILDS=NATIVE" release
+      - name: Build Linux x86_64 version
+        run: make -f Makefile.cross "BUILDS=LINUX_X86_64" release
 
       - name: Show build output
         run: ls -l . build.*
@@ -126,110 +126,101 @@ jobs:
           retention-days: 2
 
 
+  build_mswin32:
+    name: Build Microsoft Windows 32-bit
+    runs-on: ubuntu-latest
+    outputs:
+      build_artifacts_names: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
+    env:
+      package: ${{ inputs.package_name }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Prep cross-compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install mingw-w64  # mingw-64 includes 32 on .deb distros
+
+      - name: Read version and save in "build_version" environment variable
+        run: echo "build_version=$(make show_version)" >> $GITHUB_ENV
+
+      - id: build_version
+        run: echo "build_version=${build_version}" >> $GITHUB_OUTPUT
+
+      - name: Build Microsoft Windows 32-bit version
+        run: make -f Makefile.cross "BUILDS=MSWIN32" release
+
+      - name: Show build output
+        run: ls -l . build.*
+
+      - id: build_artifacts_name
+        run: echo "build_artifacts_name=${package}-win32-build-artifacts-${build_version}" >> $GITHUB_OUTPUT
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
+          path: build.win32/${{ env.package }}-${{ env.build_version }}-win32.tar.gz
+          if-no-files-found: error
+          retention-days: 2
+
+
+  build_mswin64:
+    name: Build Microsoft Windows 64-bit
+    runs-on: ubuntu-latest
+    outputs:
+      build_artifacts_names: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
+    env:
+      package: ${{ inputs.package_name }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Prep cross-compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install mingw-w64
+
+      - name: Read version and save in "build_version" environment variable
+        run: echo "build_version=$(make show_version)" >> $GITHUB_ENV
+
+      - id: build_version
+        run: echo "build_version=${build_version}" >> $GITHUB_OUTPUT
+
+      - name: Build Microsoft Windows 64-bit version
+        run: make -f Makefile.cross "BUILDS=MSWIN64" release
+
+      - name: Show build output
+        run: ls -l . build.*
+
+      - id: build_artifacts_name
+        run: echo "build_artifacts_name=${package}-win64-build-artifacts-${build_version}" >> $GITHUB_OUTPUT
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
+          path: build.win64/${{ env.package }}-${{ env.build_version }}-win64.tar.gz
+          if-no-files-found: error
+          retention-days: 2
+
+
   build_all:
     name: Build All
     runs-on: ubuntu-latest
-    needs: [build_linux, build_msdos]
+    needs: [build_linux_x86_64, build_msdos, build_mswin32, build_mswin64]
     outputs:
       package_name: ${{ inputs.package_name }}
       build_version: ${{ steps.build_version.outputs.build_version }}
       build_arch: ${{ steps.build_arch.outputs.build_arch }}
       build_artifacts_names: |
-        ${{ needs.build_linux.build_artifacts_name.outputs.build_artifacts_name }}
+        ${{ needs.build_linux_x86_64.build_artifacts_name.outputs.build_artifacts_name }}
         ${{ needs.build_msdos.build_artifacts_name.outputs.build_artifacts_name }}
-#        ${{ needs.build_win32.build_artifacts_name.outputs.build_artifacts_name }}
-#        ${{ needs.build_win64.build_artifacts_name.outputs.build_artifacts_name }}
+        ${{ needs.build_mswin32.build_artifacts_name.outputs.build_artifacts_name }}
+        ${{ needs.build_mswin64.build_artifacts_name.outputs.build_artifacts_name }}
     steps:
       - name: Build All Done
         run: echo 'Build All' done!
-
-
-#  build:
-#    name: Build
-#    runs-on: ubuntu-latest
-#    outputs:
-#      package_name: ${{ inputs.package_name }}
-#      build_version: ${{ steps.build_version.outputs.build_version }}
-#      build_arch: ${{ steps.build_arch.outputs.build_arch }}
-#      build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
-#    steps:
-#      - uses: actions/checkout@v3
-#        with:
-#          submodules: true
-#
-#      - name: Prep cross-compilers and PATH
-#        run: |
-#          sudo apt-get update
-#          sudo apt-get install mingw-w64
-#          wget -nv https://github.com/andrewwutw/build-djgpp/releases/download/v3.1/djgpp-linux64-gcc1020.tar.bz2
-#          tar -xf djgpp-linux64-gcc1020.tar.bz2
-#          echo "$PWD/djgpp/bin" >> $GITHUB_PATH
-#
-#      - name: Show stuff
-#        run: |
-#          echo "inputs.package_name=${{ inputs.package_name }}"
-#          echo "inputs.make_build_target=${{ inputs.make_build_target }}"
-#
-#      - name: Set package name in env
-#        run: echo "package=${{ inputs.package_name }}" >> $GITHUB_ENV
-#
-#      - name: Read version and save in "build_version" environment variable
-#        run: echo "build_version=$(make show_version)" >> $GITHUB_ENV
-#
-#      - name: Read architecture and save in "build_arch" environment variable
-#        run: echo "build_arch=$(arch)" >> $GITHUB_ENV
-#
-#      - id: build_version
-#        run: echo "build_version=${build_version}" >> $GITHUB_OUTPUT
-#
-#      - id: build_arch
-#        run: echo "build_arch=${build_arch}" >> $GITHUB_OUTPUT
-#
-#      - name: Build all cross versions
-#        run: >
-#          make -f Makefile.cross
-#          "BUILDS=NATIVE MSDOS MSWIN32 MSWIN64"
-#          ${{ inputs.make_build_target }}
-#
-#      - name: Add linux tarball to "release_files"
-#        run: |
-#          echo "release_files<<EOF" >> $GITHUB_ENV
-#          echo -e "${release_files}${release_files:+\n}${package}-${build_version}-linux.${build_arch}.tar.gz" >> $GITHUB_ENV
-#          echo "EOF" >> $GITHUB_ENV
-#
-#      - name: Add MS-DOS tarball to "release_files"
-#        run: |
-#          echo "release_files<<EOF" >> $GITHUB_ENV
-#          echo -e "${release_files}${release_files:+\n}${package}-${build_version}-msdos.tar.gz" >> $GITHUB_ENV
-#          echo "EOF" >> $GITHUB_ENV
-#
-#      - name: Add MS Windows 32 tarball to "release_files"
-#        run: |
-#          echo "release_files<<EOF" >> $GITHUB_ENV
-#          echo -e "${release_files}${release_files:+\n}${package}-${build_version}-win32.tar.gz" >> $GITHUB_ENV
-#          echo "EOF" >> $GITHUB_ENV
-#
-#      - name: Add MS Windows 64 tarball to "release_files"
-#        run: |
-#          echo "release_files<<EOF" >> $GITHUB_ENV
-#          echo -e "${release_files}${release_files:+\n}${package}-${build_version}-win64.tar.gz" >> $GITHUB_ENV
-#          echo "EOF" >> $GITHUB_ENV
-#
-#      - name: Show build files
-#        run: ls -l . djgpp build.*
-#
-#      - name: Show "release_files"
-#        run: |
-#          echo "release_files=${release_files}"
-#
-#      - id: build_artifacts_name
-#        run: echo "build_artifacts_name=${package}-build-artifacts-${build_version}" >> $GITHUB_OUTPUT
-#
-#      - name: Upload build artifacts
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
-#          path: |
-#            ${{ env.release_files }}
-#          if-no-files-found: error
-#          retention-days: 2
