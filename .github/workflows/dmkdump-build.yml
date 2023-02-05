@@ -12,7 +12,7 @@ on:
         description: Make build target
         required: false
         type: string
-        default: "fullrelease"
+        default: "release"
 
   workflow_call:
     inputs:
@@ -25,7 +25,7 @@ on:
         description: Make build target
         required: false
         type: string
-        default: "fullrelease"
+        default: "release"
     outputs:
       package_name:
         description: Name of package
@@ -49,6 +49,7 @@ jobs:
       build_artifacts_names: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
       package: ${{ inputs.package_name }}
+      make_build_target: ${{ inputs.make_build_target }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -67,7 +68,7 @@ jobs:
         run: echo "build_arch=${build_arch}" >> $GITHUB_OUTPUT
 
       - name: Build Linux x86_64 version
-        run: make -f Makefile.cross "BUILDS=LINUX_X86_64" release
+        run: make -f Makefile.cross "BUILDS=LINUX_X86_64" "${make_build_target}"
 
       - name: Show build output
         run: ls -l . build.*
@@ -93,6 +94,7 @@ jobs:
       build_artifacts_names: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
       package: ${{ inputs.package_name }}
+      make_build_target: ${{ inputs.make_build_target }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -116,7 +118,7 @@ jobs:
         run: echo "build_arch=${build_arch}" >> $GITHUB_OUTPUT
 
       - name: Build ARM Linux 64-bit version
-        run: make -f Makefile.cross "BUILDS=LINUX_ARM64" release
+        run: make -f Makefile.cross "BUILDS=LINUX_ARM64" "${make_build_target}"
 
       - name: Show build output
         run: ls -l . build.*
@@ -142,6 +144,7 @@ jobs:
       build_artifacts_names: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
       package: ${{ inputs.package_name }}
+      make_build_target: ${{ inputs.make_build_target }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -165,7 +168,7 @@ jobs:
         run: echo "build_arch=${build_arch}" >> $GITHUB_OUTPUT
 
       - name: Build ARM Linux 32-bit version
-        run: make -f Makefile.cross "BUILDS=LINUX_ARM32" release
+        run: make -f Makefile.cross "BUILDS=LINUX_ARM32" "${make_build_target}"
 
       - name: Show build output
         run: ls -l . build.*
@@ -189,6 +192,7 @@ jobs:
       build_artifacts_names: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
       package: ${{ inputs.package_name }}
+      make_build_target: ${{ inputs.make_build_target }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -209,7 +213,7 @@ jobs:
         run: echo "build_version=${build_version}" >> $GITHUB_OUTPUT
 
       - name: Build MS-DOS version
-        run: make -f Makefile.cross "BUILDS=MSDOS" release
+        run: make -f Makefile.cross "BUILDS=MSDOS" "${make_build_target}"
 
       - name: Show build output
         run: ls -l . build.*
@@ -233,6 +237,7 @@ jobs:
       build_artifacts_names: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
       package: ${{ inputs.package_name }}
+      make_build_target: ${{ inputs.make_build_target }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -251,7 +256,7 @@ jobs:
         run: echo "build_version=${build_version}" >> $GITHUB_OUTPUT
 
       - name: Build Microsoft Windows 32-bit version
-        run: make -f Makefile.cross "BUILDS=MSWIN32" release
+        run: make -f Makefile.cross "BUILDS=MSWIN32" "${make_build_target}"
 
       - name: Show build output
         run: ls -l . build.*
@@ -275,6 +280,7 @@ jobs:
       build_artifacts_names: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
       package: ${{ inputs.package_name }}
+      make_build_target: ${{ inputs.make_build_target }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -292,7 +298,7 @@ jobs:
         run: echo "build_version=${build_version}" >> $GITHUB_OUTPUT
 
       - name: Build Microsoft Windows 64-bit version
-        run: make -f Makefile.cross "BUILDS=MSWIN64" release
+        run: make -f Makefile.cross "BUILDS=MSWIN64" "${make_build_target}"
 
       - name: Show build output
         run: ls -l . build.*
@@ -312,7 +318,7 @@ jobs:
   build_all:
     name: Build All
     runs-on: ubuntu-latest
-    needs: [build_linux_x86_64, build_linux_aarch64, build_linux_armv7l, build_msdos, build_mswin32, build_mswin64]
+    needs: [build_linux_x86_64, build_linux_armv7l, build_linux_aarch64, build_msdos, build_mswin32, build_mswin64]
     outputs:
       package_name: ${{ inputs.package_name }}
       build_version: ${{ steps.build_version.outputs.build_version }}

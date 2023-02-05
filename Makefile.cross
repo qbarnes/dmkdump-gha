@@ -5,8 +5,7 @@ build_dir  ?= build
 linux_targets = $(PRODUCT)
 ms_targets    = $(PRODUCT).exe
 
-#BUILDS    ?= LINUX_X86_64 LINUX_ARM32_CC LINUX_ARM64_CC MSDOS MSWIN32 MSWIN64
-BUILDS    ?= LINUX_X86_64 MSDOS MSWIN32 MSWIN64
+BUILDS    ?= LINUX_X86_64 LINUX_ARM32_CC LINUX_ARM64_CC MSDOS MSWIN32 MSWIN64
 
 native_os   := $(shell uname -o)
 native_arch := $(shell uname -m)
