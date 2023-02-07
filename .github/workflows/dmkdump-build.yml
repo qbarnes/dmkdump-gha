@@ -27,23 +27,46 @@ on:
         type: string
         default: "release"
     outputs:
+      test1:
+        value: ${{ jobs.build_all.outputs.test1 }}
+      test2:
+        value: 'testAAAAA'
       package_name:
         description: Name of package
-        value: ${{ inputs.package_name }}
+        value: ${{ jobs.build_all.outputs.package_name }}
       build_version:
         description: Build version
-        value: ${{ jobs.build.outputs.build_version }}
-      build_artifacts_name:
-        description: Build artifacts name
-        value: ${{ jobs.build.outputs.build_artifacts_name }}
+        value: ${{ jobs.build_all.outputs.build_version }}
+      build_artifacts_names:
+        description: Build artifacts names
+        value: ${{ jobs.build_all.outputs.build_artifacts_names }}
 
 
 jobs:
+  build_version:
+    name: Determine Build Version
+    runs-on: ubuntu-latest
+    outputs:
+      build_version: ${{ steps.build_version.outputs.build_version }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Read version and save in "build_version" environment variable
+        run: echo "build_version=$(make show_version)" >> $GITHUB_ENV
+
+      - id: build_version
+        run: echo "build_version=${build_version}" >> $GITHUB_OUTPUT
+
+
   build_linux_x86_64:
     name: Build Linux for x86_64
     runs-on: ubuntu-latest
+    needs: build_version
     outputs:
-      build_artifacts_names: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
+      build_version: ${{ steps.build_version.outputs.build_version }}
+      build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
       package: ${{ inputs.package_name }}
       make_build_target: ${{ inputs.make_build_target }}
@@ -53,7 +76,7 @@ jobs:
           submodules: true
 
       - name: Read version and save in "build_version" environment variable
-        run: echo "build_version=$(make show_version)" >> $GITHUB_ENV
+        run: echo "build_version=${{ needs.build_version.outputs.build_version }}" >> $GITHUB_ENV
 
       - name: Save architecture in "build_arch" environment variable
         run: echo "build_arch=x86_64" >> $GITHUB_ENV
@@ -88,7 +111,8 @@ jobs:
     # Raspberry Pi OS based on Debian 11.
     runs-on: ubuntu-20.04
     outputs:
-      build_artifacts_names: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
+      build_version: ${{ steps.build_version.outputs.build_version }}
+      build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
       package: ${{ inputs.package_name }}
       make_build_target: ${{ inputs.make_build_target }}
@@ -138,7 +162,8 @@ jobs:
     # Raspberry Pi OS based on Debian 11.
     runs-on: ubuntu-20.04
     outputs:
-      build_artifacts_names: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
+      build_version: ${{ steps.build_version.outputs.build_version }}
+      build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
       package: ${{ inputs.package_name }}
       make_build_target: ${{ inputs.make_build_target }}
@@ -186,7 +211,8 @@ jobs:
     name: Build MS-DOS
     runs-on: ubuntu-latest
     outputs:
-      build_artifacts_names: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
+      build_version: ${{ steps.build_version.outputs.build_version }}
+      build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
       package: ${{ inputs.package_name }}
       make_build_target: ${{ inputs.make_build_target }}
@@ -231,7 +257,8 @@ jobs:
     name: Build Microsoft Windows 32-bit
     runs-on: ubuntu-latest
     outputs:
-      build_artifacts_names: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
+      build_version: ${{ steps.build_version.outputs.build_version }}
+      build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
       package: ${{ inputs.package_name }}
       make_build_target: ${{ inputs.make_build_target }}
@@ -274,7 +301,8 @@ jobs:
     name: Build Microsoft Windows 64-bit
     runs-on: ubuntu-latest
     outputs:
-      build_artifacts_names: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
+      build_version: ${{ steps.build_version.outputs.build_version }}
+      build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
       package: ${{ inputs.package_name }}
       make_build_target: ${{ inputs.make_build_target }}
@@ -315,10 +343,11 @@ jobs:
   build_all:
     name: Build All
     runs-on: ubuntu-latest
-    needs: [build_linux_x86_64, build_linux_armv7l, build_linux_aarch64, build_msdos, build_mswin32, build_mswin64]
+    needs: [build_version, build_linux_x86_64, build_linux_armv7l, build_linux_aarch64, build_msdos, build_mswin32, build_mswin64]
     outputs:
+      test1: 'test11111'
       package_name: ${{ inputs.package_name }}
-      build_version: ${{ steps.build_version.outputs.build_version }}
+      build_version: ${{ needs.build_version.outputs.build_version }}
       build_artifacts_names: |
         ${{ needs.build_linux_x86_64.build_artifacts_name.outputs.build_artifacts_name }}
         ${{ needs.build_linux_aarch64.build_artifacts_name.outputs.build_artifacts_name }}
