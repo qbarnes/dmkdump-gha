@@ -65,31 +65,17 @@ jobs:
         with:
           submodules: true
 
-      - id: target_platform_full_name
-        run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
-
-      - name: Show upload target
-        run: |
-          echo "build.${target_platform_full_name}/${package}-${version}-${target_platform_full_name}.tar.gz"
-
-      - name: Build Linux x86_64 version
+      - name: Build target
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
 
       - name: Show build output
         run: ls -l . build.*
 
-      - name: Show upload target 2
-        run: |
-          echo "build.${{ env.target_platform_full_name }}/${{ env.package }}-${{ env.version }}-${{ env.target_platform_full_name }}.tar.gz"
-          echo "build.${target_platform_full_name}/${package}-${version}-${target_platform_full_name}.tar.gz"
+      - id: target_platform_full_name
+        run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
 
       - id: build_artifacts_name
         run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
-
-      - name: Show upload target 3
-        run: |
-          echo "build.${{ env.target_platform_full_name }}/${{ env.package }}-${{ env.version }}-${{ env.target_platform_full_name }}.tar.gz"
-          echo "build.${target_platform_full_name}/${package}-${version}-${target_platform_full_name}.tar.gz"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
@@ -125,14 +111,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential gcc-arm-linux-gnueabi
 
-      - id: target_platform_full_name
-        run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
-
-      - name: Build ARM Linux 32-bit version
+      - name: Build target
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
 
       - name: Show build output
         run: ls -l . build.*
+
+      - id: target_platform_full_name
+        run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
 
       - id: build_artifacts_name
         run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
@@ -171,14 +157,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential gcc-aarch64-linux-gnu
 
-      - id: target_platform_full_name
-        run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
-
-      - name: Build ARM Linux 64-bit version
+      - name: Build target
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
 
       - name: Show build output
         run: ls -l . build.*
+
+      - id: target_platform_full_name
+        run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
 
       - id: build_artifacts_name
         run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
@@ -217,14 +203,14 @@ jobs:
           tar -xf djgpp-linux64-gcc1020.tar.bz2
           echo "$PWD/djgpp/bin" >> $GITHUB_PATH
 
-      - id: target_platform_full_name
-        run: echo "target_platform_full_name=${target_platform_name}" >> $GITHUB_ENV
-
-      - name: Build MS-DOS version
+      - name: Build target
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
 
       - name: Show build output
         run: ls -l . build.*
+
+      - id: target_platform_full_name
+        run: echo "target_platform_full_name=${target_platform_name}" >> $GITHUB_ENV
 
       - id: build_artifacts_name
         run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
@@ -261,14 +247,14 @@ jobs:
           # mingw-64 includes 32 on .deb distros
           sudo apt-get install -y mingw-w64
 
-      - id: target_platform_full_name
-        run: echo "target_platform_full_name=${target_platform_name}" >> $GITHUB_ENV
-
-      - name: Build Microsoft Windows 32-bit version
+      - name: Build target
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
 
       - name: Show build output
         run: ls -l . build.*
+
+      - id: target_platform_full_name
+        run: echo "target_platform_full_name=${target_platform_name}" >> $GITHUB_ENV
 
       - id: build_artifacts_name
         run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
@@ -304,14 +290,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mingw-w64
 
-      - id: target_platform_full_name
-        run: echo "target_platform_full_name=${target_platform_name}" >> $GITHUB_ENV
-
-      - name: Build Microsoft Windows 64-bit version
+      - name: Build target
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
 
       - name: Show build output
         run: ls -l . build.*
+
+      - id: target_platform_full_name
+        run: echo "target_platform_full_name=${target_platform_name}" >> $GITHUB_ENV
 
       - id: build_artifacts_name
         run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
