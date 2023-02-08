@@ -75,7 +75,7 @@ jobs:
         run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
 
       - id: build_artifacts_name
-        run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
+        run: echo "build_artifacts_name=${package}-${version}-${target_platform_full_name}-build-artifacts" >> $GITHUB_OUTPUT
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
@@ -121,7 +121,7 @@ jobs:
         run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
 
       - id: build_artifacts_name
-        run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
+        run: echo "build_artifacts_name=${package}-${version}-${target_platform_full_name}-build-artifacts" >> $GITHUB_OUTPUT
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
@@ -167,7 +167,7 @@ jobs:
         run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
 
       - id: build_artifacts_name
-        run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
+        run: echo "build_artifacts_name=${package}-${version}-${target_platform_full_name}-build-artifacts" >> $GITHUB_OUTPUT
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
@@ -213,7 +213,7 @@ jobs:
         run: echo "target_platform_full_name=${target_platform_name}" >> $GITHUB_ENV
 
       - id: build_artifacts_name
-        run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
+        run: echo "build_artifacts_name=${package}-${version}-${target_platform_full_name}-build-artifacts" >> $GITHUB_OUTPUT
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
@@ -257,7 +257,7 @@ jobs:
         run: echo "target_platform_full_name=${target_platform_name}" >> $GITHUB_ENV
 
       - id: build_artifacts_name
-        run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
+        run: echo "build_artifacts_name=${package}-${version}-${target_platform_full_name}-build-artifacts" >> $GITHUB_OUTPUT
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
@@ -300,7 +300,7 @@ jobs:
         run: echo "target_platform_full_name=${target_platform_name}" >> $GITHUB_ENV
 
       - id: build_artifacts_name
-        run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
+        run: echo "build_artifacts_name=${package}-${version}-${target_platform_full_name}-build-artifacts" >> $GITHUB_OUTPUT
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
