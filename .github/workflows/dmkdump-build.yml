@@ -68,9 +68,6 @@ jobs:
       - name: Build target
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
 
-      - name: Show build output
-        run: ls -l . build.*
-
       - id: target_platform_full_name
         run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
 
@@ -113,9 +110,6 @@ jobs:
 
       - name: Build target
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
-
-      - name: Show build output
-        run: ls -l . build.*
 
       - id: target_platform_full_name
         run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
@@ -160,9 +154,6 @@ jobs:
       - name: Build target
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
 
-      - name: Show build output
-        run: ls -l . build.*
-
       - id: target_platform_full_name
         run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
 
@@ -206,9 +197,6 @@ jobs:
       - name: Build target
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
 
-      - name: Show build output
-        run: ls -l . build.*
-
       - id: target_platform_full_name
         run: echo "target_platform_full_name=${target_platform_name}" >> $GITHUB_ENV
 
@@ -250,9 +238,6 @@ jobs:
       - name: Build target
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
 
-      - name: Show build output
-        run: ls -l . build.*
-
       - id: target_platform_full_name
         run: echo "target_platform_full_name=${target_platform_name}" >> $GITHUB_ENV
 
@@ -292,9 +277,6 @@ jobs:
 
       - name: Build target
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
-
-      - name: Show build output
-        run: ls -l . build.*
 
       - id: target_platform_full_name
         run: echo "target_platform_full_name=${target_platform_name}" >> $GITHUB_ENV
