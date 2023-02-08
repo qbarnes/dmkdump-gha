@@ -3,11 +3,6 @@ name: dmkdump-build
 on:
   workflow_dispatch:
     inputs:
-      package_name:
-        description: Name of package
-        required: false
-        type: string
-        default: "dmkdump"
       make_build_target:
         description: Make build target
         required: false
@@ -16,66 +11,66 @@ on:
 
   workflow_call:
     inputs:
-      package_name:
-        description: Name of package
-        required: false
-        type: string
-        default: "dmkdump"
       make_build_target:
         description: Make build target
         required: false
         type: string
         default: "release"
     outputs:
-      test1:
-        value: ${{ jobs.build_all.outputs.test1 }}
-      test2:
-        value: 'testAAAAA'
       package_name:
         description: Name of package
         value: ${{ jobs.build_all.outputs.package_name }}
-      build_version:
+      package_version:
         description: Build version
-        value: ${{ jobs.build_all.outputs.build_version }}
+        value: ${{ jobs.build_all.outputs.package_version }}
       build_artifacts_names:
         description: Build artifacts names
         value: ${{ jobs.build_all.outputs.build_artifacts_names }}
 
 
 jobs:
-  build_version:
-    name: Determine Build Version
+  build_name_version:
+    name: Determine Build Package Name and Version
     runs-on: ubuntu-latest
     outputs:
-      build_version: ${{ steps.build_version.outputs.build_version }}
+      package_name: ${{ steps.package_name.outputs.package_name }}
+      package_version: ${{ steps.package_version.outputs.package_version }}
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
 
-      - name: Read version and save in "build_version" environment variable
-        run: echo "build_version=$(make show_version)" >> $GITHUB_ENV
+      - id: package_name
+        run: echo "package_name=$(make show_product)" >> $GITHUB_OUTPUT
 
-      - id: build_version
-        run: echo "build_version=${build_version}" >> $GITHUB_OUTPUT
+      - id: package_version
+        run: echo "package_version=$(make show_version)" >> $GITHUB_OUTPUT
 
 
   build_linux_x86_64:
     name: Build Linux for x86_64
     runs-on: ubuntu-latest
-    needs: build_version
+    needs: build_name_version
     outputs:
       build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
-      package: ${{ inputs.package_name }}
       make_build_target: ${{ inputs.make_build_target }}
+      package: ${{ needs.build_name_version.outputs.package_name }}
+      version: ${{ needs.build_name_version.outputs.package_version }}
+      target_platform_name: linux
       target_platform: LINUX_X86_64
       target_arch: x86_64
-      build_version: ${{ needs.build_version.outputs.build_version }}
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
+
+      - id: target_platform_full_name
+        run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
+
+      - name: Show upload target
+        run: |
+          echo "build.${target_platform_full_name}/${package}-${version}-${target_platform_full_name}.tar.gz"
 
       - name: Build Linux x86_64 version
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
@@ -83,56 +78,24 @@ jobs:
       - name: Show build output
         run: ls -l . build.*
 
-      - id: build_artifacts_name
-        run: echo "build_artifacts_name=${package}-linux-${target_arch}-build-artifacts-${build_version}" >> $GITHUB_OUTPUT
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
-          path: build.linux.${{ env.target_arch }}/${{ env.package }}-${{ env.build_version }}-linux.${{ env.target_arch }}.tar.gz
-          if-no-files-found: error
-          retention-days: 2
-
-
-  build_linux_aarch64:
-    name: Build Linux for ARM 64-bit
-    # Older ubuntu-20.04 needed for cross packages compatible with
-    # Raspberry Pi OS based on Debian 11.
-    runs-on: ubuntu-20.04
-    needs: build_version
-    outputs:
-      build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
-    env:
-      package: ${{ inputs.package_name }}
-      make_build_target: ${{ inputs.make_build_target }}
-      target_platform: LINUX_ARM64
-      target_arch: aarch64
-      build_version: ${{ needs.build_version.outputs.build_version }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-
-      - name: Prep cross-compiler
+      - name: Show upload target 2
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential gcc-aarch64-linux-gnu
-
-      - name: Build ARM Linux 64-bit version
-        run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
-
-      - name: Show build output
-        run: ls -l . build.*
+          echo "build.${{ env.target_platform_full_name }}/${{ env.package }}-${{ env.version }}-${{ env.target_platform_full_name }}.tar.gz"
+          echo "build.${target_platform_full_name}/${package}-${version}-${target_platform_full_name}.tar.gz"
 
       - id: build_artifacts_name
-        run: echo "build_artifacts_name=${package}-linux-${target_arch}-build-artifacts-${build_version}" >> $GITHUB_OUTPUT
+        run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
+
+      - name: Show upload target 3
+        run: |
+          echo "build.${{ env.target_platform_full_name }}/${{ env.package }}-${{ env.version }}-${{ env.target_platform_full_name }}.tar.gz"
+          echo "build.${target_platform_full_name}/${package}-${version}-${target_platform_full_name}.tar.gz"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
-          path: build.linux.${{ env.target_arch }}/${{ env.package }}-${{ env.build_version }}-linux.${{ env.target_arch }}.tar.gz
+          path: build.${{ env.target_platform_full_name }}/${{ env.package }}-${{ env.version }}-${{ env.target_platform_full_name }}.tar.gz
           if-no-files-found: error
           retention-days: 2
 
@@ -142,15 +105,16 @@ jobs:
     # Older ubuntu-20.04 needed for cross packages compatible with
     # Raspberry Pi OS based on Debian 11.
     runs-on: ubuntu-20.04
-    needs: build_version
+    needs: build_name_version
     outputs:
       build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
-      package: ${{ inputs.package_name }}
       make_build_target: ${{ inputs.make_build_target }}
+      package: ${{ needs.build_name_version.outputs.package_name }}
+      version: ${{ needs.build_name_version.outputs.package_version }}
+      target_platform_name: linux
       target_platform: LINUX_ARM32
       target_arch: armv7l
-      build_version: ${{ needs.build_version.outputs.build_version }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -161,6 +125,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential gcc-arm-linux-gnueabi
 
+      - id: target_platform_full_name
+        run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
+
       - name: Build ARM Linux 32-bit version
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
 
@@ -168,13 +135,59 @@ jobs:
         run: ls -l . build.*
 
       - id: build_artifacts_name
-        run: echo "build_artifacts_name=${package}-linux-${target_arch}-build-artifacts-${build_version}" >> $GITHUB_OUTPUT
+        run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
-          path: build.linux.${{ env.target_arch }}/${{ env.package }}-${{ env.build_version }}-linux.${{ env.target_arch }}.tar.gz
+          path: build.${{ env.target_platform_full_name }}/${{ env.package }}-${{ env.version }}-${{ env.target_platform_full_name }}.tar.gz
+          if-no-files-found: error
+          retention-days: 2
+
+
+  build_linux_aarch64:
+    name: Build Linux for ARM 64-bit
+    # Older ubuntu-20.04 needed for cross packages compatible with
+    # Raspberry Pi OS based on Debian 11.
+    runs-on: ubuntu-20.04
+    needs: build_name_version
+    outputs:
+      build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
+    env:
+      make_build_target: ${{ inputs.make_build_target }}
+      package: ${{ needs.build_name_version.outputs.package_name }}
+      version: ${{ needs.build_name_version.outputs.package_version }}
+      target_platform_name: linux
+      target_platform: LINUX_ARM64
+      target_arch: aarch64
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Prep cross-compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential gcc-aarch64-linux-gnu
+
+      - id: target_platform_full_name
+        run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
+
+      - name: Build ARM Linux 64-bit version
+        run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
+
+      - name: Show build output
+        run: ls -l . build.*
+
+      - id: build_artifacts_name
+        run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
+          path: build.${{ env.target_platform_full_name }}/${{ env.package }}-${{ env.version }}-${{ env.target_platform_full_name }}.tar.gz
           if-no-files-found: error
           retention-days: 2
 
@@ -182,14 +195,15 @@ jobs:
   build_msdos:
     name: Build MS-DOS
     runs-on: ubuntu-latest
-    needs: build_version
+    needs: build_name_version
     outputs:
       build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
-      package: ${{ inputs.package_name }}
       make_build_target: ${{ inputs.make_build_target }}
+      package: ${{ needs.build_name_version.outputs.package_name }}
+      version: ${{ needs.build_name_version.outputs.package_version }}
+      target_platform_name: msdos
       target_platform: MSDOS
-      build_version: ${{ needs.build_version.outputs.build_version }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -203,6 +217,9 @@ jobs:
           tar -xf djgpp-linux64-gcc1020.tar.bz2
           echo "$PWD/djgpp/bin" >> $GITHUB_PATH
 
+      - id: target_platform_full_name
+        run: echo "target_platform_full_name=${target_platform_name}" >> $GITHUB_ENV
+
       - name: Build MS-DOS version
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
 
@@ -210,13 +227,13 @@ jobs:
         run: ls -l . build.*
 
       - id: build_artifacts_name
-        run: echo "build_artifacts_name=${package}-msdos-build-artifacts-${build_version}" >> $GITHUB_OUTPUT
+        run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
-          path: build.msdos/${{ env.package }}-${{ env.build_version }}-msdos.tar.gz
+          path: build.${{ env.target_platform_full_name }}/${{ env.package }}-${{ env.version }}-${{ env.target_platform_full_name }}.tar.gz
           if-no-files-found: error
           retention-days: 2
 
@@ -224,14 +241,15 @@ jobs:
   build_mswin32:
     name: Build Microsoft Windows 32-bit
     runs-on: ubuntu-latest
-    needs: build_version
+    needs: build_name_version
     outputs:
       build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
-      package: ${{ inputs.package_name }}
       make_build_target: ${{ inputs.make_build_target }}
+      package: ${{ needs.build_name_version.outputs.package_name }}
+      version: ${{ needs.build_name_version.outputs.package_version }}
+      target_platform_name: win32
       target_platform: MSWIN32
-      build_version: ${{ needs.build_version.outputs.build_version }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -243,11 +261,8 @@ jobs:
           # mingw-64 includes 32 on .deb distros
           sudo apt-get install -y mingw-w64
 
-      - name: Read version and save in "build_version" environment variable
-        run: echo "build_version=$(make show_version)" >> $GITHUB_ENV
-
-      - id: build_version
-        run: echo "build_version=${build_version}" >> $GITHUB_OUTPUT
+      - id: target_platform_full_name
+        run: echo "target_platform_full_name=${target_platform_name}" >> $GITHUB_ENV
 
       - name: Build Microsoft Windows 32-bit version
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
@@ -256,13 +271,13 @@ jobs:
         run: ls -l . build.*
 
       - id: build_artifacts_name
-        run: echo "build_artifacts_name=${package}-win32-build-artifacts-${build_version}" >> $GITHUB_OUTPUT
+        run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
-          path: build.win32/${{ env.package }}-${{ env.build_version }}-win32.tar.gz
+          path: build.${{ env.target_platform_full_name }}/${{ env.package }}-${{ env.version }}-${{ env.target_platform_full_name }}.tar.gz
           if-no-files-found: error
           retention-days: 2
 
@@ -270,13 +285,15 @@ jobs:
   build_mswin64:
     name: Build Microsoft Windows 64-bit
     runs-on: ubuntu-latest
+    needs: build_name_version
     outputs:
       build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
     env:
-      package: ${{ inputs.package_name }}
       make_build_target: ${{ inputs.make_build_target }}
+      package: ${{ needs.build_name_version.outputs.package_name }}
+      version: ${{ needs.build_name_version.outputs.package_version }}
+      target_platform_name: win64
       target_platform: MSWIN64
-      build_version: ${{ needs.build_version.outputs.build_version }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -287,11 +304,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mingw-w64
 
-      - name: Read version and save in "build_version" environment variable
-        run: echo "build_version=$(make show_version)" >> $GITHUB_ENV
-
-      - id: build_version
-        run: echo "build_version=${build_version}" >> $GITHUB_OUTPUT
+      - id: target_platform_full_name
+        run: echo "target_platform_full_name=${target_platform_name}" >> $GITHUB_ENV
 
       - name: Build Microsoft Windows 64-bit version
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
@@ -300,13 +314,13 @@ jobs:
         run: ls -l . build.*
 
       - id: build_artifacts_name
-        run: echo "build_artifacts_name=${package}-win64-build-artifacts-${build_version}" >> $GITHUB_OUTPUT
+        run: echo "build_artifacts_name=${package}-${target_platform_full_name}-build-artifacts-${version}" >> $GITHUB_OUTPUT
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
-          path: build.win64/${{ env.package }}-${{ env.build_version }}-win64.tar.gz
+          path: build.${{ env.target_platform_full_name }}/${{ env.package }}-${{ env.version }}-${{ env.target_platform_full_name }}.tar.gz
           if-no-files-found: error
           retention-days: 2
 
@@ -314,11 +328,10 @@ jobs:
   build_all:
     name: Build All
     runs-on: ubuntu-latest
-    needs: [build_version, build_linux_x86_64, build_linux_armv7l, build_linux_aarch64, build_msdos, build_mswin32, build_mswin64]
+    needs: [build_name_version, build_linux_x86_64, build_linux_armv7l, build_linux_aarch64, build_msdos, build_mswin32, build_mswin64]
     outputs:
-      test1: 'test11111'
-      package_name: ${{ inputs.package_name }}
-      build_version: ${{ needs.build_version.outputs.build_version }}
+      package_name: ${{ needs.build_name_version.outputs.package_name }}
+      version: ${{ needs.build_name_version.outputs.package_version }}
       build_artifacts_names: |
         ${{ needs.build_linux_x86_64.build_artifacts_name.outputs.build_artifacts_name }}
         ${{ needs.build_linux_aarch64.build_artifacts_name.outputs.build_artifacts_name }}
