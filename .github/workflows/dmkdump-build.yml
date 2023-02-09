@@ -41,7 +41,7 @@ jobs:
           submodules: true
 
       - id: package_name
-        run: echo "package_name=$(make show_product)" >> $GITHUB_OUTPUT
+        run: echo "package_name=$(make show_package)" >> $GITHUB_OUTPUT
 
       - id: package_version
         run: echo "package_version=$(make show_version)" >> $GITHUB_OUTPUT

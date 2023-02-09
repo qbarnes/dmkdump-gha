@@ -60,7 +60,7 @@ $(TARBALLGZ): $(tar_files)
 		--transform='s:^cwsdpmi/bin/CWSDPMI.EXE:cwsdpmi.exe:' \
 		-f '$@' $^
 
-show_product:
+show_package:
 	@echo $(PRODUCT)
 
 show_version:
