@@ -88,6 +88,7 @@ jobs:
     # Older ubuntu-20.04 needed for cross packages compatible with
     # Raspberry Pi OS based on Debian 11.
     runs-on: ubuntu-20.04
+    container: docker.io/qbarnes/ubuntu2004-crossbuild-arm32
     needs: build_name_version
     outputs:
       build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
@@ -102,11 +103,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-
-      - name: Prep cross-compiler
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential gcc-arm-linux-gnueabi
 
       - name: Build target
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
@@ -131,6 +127,7 @@ jobs:
     # Older ubuntu-20.04 needed for cross packages compatible with
     # Raspberry Pi OS based on Debian 11.
     runs-on: ubuntu-20.04
+    container: docker.io/qbarnes/ubuntu2004-crossbuild-aarch64
     needs: build_name_version
     outputs:
       build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
@@ -145,11 +142,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-
-      - name: Prep cross-compiler
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential gcc-aarch64-linux-gnu
 
       - name: Build target
         run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
