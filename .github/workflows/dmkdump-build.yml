@@ -66,7 +66,9 @@ jobs:
           submodules: true
 
       - name: Build target
-        run: make -f Makefile.cross "BUILDS=${target_platform}" "${make_build_target}"
+        run: |
+          make -f Makefile.cross \
+            "BUILDS=${target_platform}" "${make_build_target}"
 
       - id: target_platform_full_name
         run: echo "target_platform_full_name=${target_platform_name}.${target_arch}" >> $GITHUB_ENV
@@ -86,7 +88,7 @@ jobs:
   build_linux_armv7l:
     name: Build Linux for ARM 32-bit
     runs-on: ubuntu-latest
-    container: docker.io/qbarnes/ubuntu-20.04-crossbuild-arm32
+    container: ghcr.io/qbarnes/containers-for-cross-compiling/ubuntu-20.04-crossbuild-arm32
     needs: build_name_version
     outputs:
       build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
@@ -123,7 +125,7 @@ jobs:
   build_linux_aarch64:
     name: Build Linux for ARM 64-bit
     runs-on: ubuntu-latest
-    container: docker.io/qbarnes/ubuntu-20.04-crossbuild-aarch64
+    container: ghcr.io/qbarnes/containers-for-cross-compiling/ubuntu-20.04-crossbuild-aarch64
     needs: build_name_version
     outputs:
       build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
@@ -160,7 +162,7 @@ jobs:
   build_msdos:
     name: Build MS-DOS
     runs-on: ubuntu-latest
-    container: docker.io/qbarnes/ubuntu-22.04-crossbuild-msdos
+    container: ghcr.io/qbarnes/containers-for-cross-compiling/ubuntu-22.04-crossbuild-msdos
     needs: build_name_version
     outputs:
       build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
@@ -196,7 +198,7 @@ jobs:
   build_mswin32:
     name: Build Microsoft Windows 32-bit
     runs-on: ubuntu-latest
-    container: docker.io/qbarnes/ubuntu-22.04-crossbuild-mswindows
+    container: ghcr.io/qbarnes/containers-for-cross-compiling/ubuntu-22.04-crossbuild-mswindows
     needs: build_name_version
     outputs:
       build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
@@ -232,7 +234,7 @@ jobs:
   build_mswin64:
     name: Build Microsoft Windows 64-bit
     runs-on: ubuntu-latest
-    container: docker.io/qbarnes/ubuntu-22.04-crossbuild-mswindows
+    container: ghcr.io/qbarnes/containers-for-cross-compiling/ubuntu-22.04-crossbuild-mswindows
     needs: build_name_version
     outputs:
       build_artifacts_name: ${{ steps.build_artifacts_name.outputs.build_artifacts_name }}
