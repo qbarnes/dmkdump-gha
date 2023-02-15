@@ -21,6 +21,11 @@ on:
         required: false
         type: string
         default: "release"
+      container_base:
+        description: Base path for containers
+        required: false
+        type: string
+        default: "ghcr.io/qbarnes/containers-for-cross-compiling"
     outputs:
       package_name:
         description: Name of package
@@ -31,6 +36,10 @@ on:
       build_artifacts_names:
         description: Build artifacts names
         value: ${{ jobs.build_all.outputs.build_artifacts_names }}
+      test1:
+        value: ${{ jobs.build_all.outputs.test1 }}
+      test2:
+        value: 'testAAAAA'
 
 
 jobs:
@@ -121,7 +130,8 @@ jobs:
     needs: [build_name_version, build_platform]
     outputs:
       package_name: ${{ needs.build_name_version.outputs.package_name }}
-      version: ${{ needs.build_name_version.outputs.package_version }}
+      package_version: ${{ needs.build_name_version.outputs.package_version }}
+      test1: 'test11111'
       build_artifacts_names: |
         ${{ needs.build_linux_x86_64.build_target.outputs.build_artifacts_name }}
         ${{ needs.build_linux_aarch64.build_target.outputs.build_artifacts_name }}

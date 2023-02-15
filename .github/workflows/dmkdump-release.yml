@@ -1,13 +1,7 @@
-name: dmkdump-release
+name: Release dmkdump
 
 on:
   workflow_dispatch:
-    inputs:
-      package_name:
-        description: Name of package
-        required: false
-        type: string
-        default: "dmkdump"
 
 
 jobs:
@@ -16,30 +10,36 @@ jobs:
     with:
       make_build_target: "release"
     secrets: inherit
+#    outputs:
+#      package_name: ${{ needs.build_all.outputs.package_name }}
+#      build_version: ${{ needs.build_all.outputs.package_version }}
+#      build_artifacts_names: ${{ needs.build_all.outputs.build_artifacts_names }}
+
 
   release:
     name: Make Release
     needs: call_build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
       - name: Show tests
         run: |
-          echo needs.call_build.outputs.package_name=${{ needs.call_build.outputs.package_name }}
           echo needs.call_build.outputs.test1=${{ needs.call_build.outputs.test1 }}
           echo needs.call_build.outputs.test2=${{ needs.call_build.outputs.test2 }}
 
       - name: Show artifacts
         run: echo needs.call_build.outputs.build_artifacts_names=${{ needs.call_build.outputs.build_artifacts_names }}
 
-      - name: Show version
-        run: echo needs.call_build.outputs.build_version=${{ needs.call_build.outputs.build_version }}
+      - name: Show package name and version
+        run: |
+          echo needs.call_build.outputs.package_name=${{ needs.call_build.outputs.package_name }}
+          echo needs.call_build.outputs.package_version=${{ needs.call_build.outputs.package_version }}
 
       - name: Create tag
         uses: rickstaa/action-create-tag@v1
         with:
-          tag: "v${{ needs.call_build.outputs.build_version }}"
+          tag: "v${{ needs.call_build.outputs.package_version }}"
 
       - name: Make artifacts directory
         run: mkdir github_artifacts
@@ -63,7 +63,7 @@ jobs:
         with:
           artifactErrorsFailBuild: true
           makeLatest: true
-          name: "Release ${{ needs.call_build.outputs.build_version }}"
-          tag: "v${{ needs.call_build.outputs.build_version }}"
+          name: "Release ${{ needs.call_build.outputs.package_version }}"
+          tag: "v${{ needs.call_build.outputs.package_version }}"
           bodyFile: ${{ env.rel_desc_file }}
           artifacts: github_artifacts/*
