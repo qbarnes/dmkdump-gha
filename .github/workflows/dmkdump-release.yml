@@ -10,36 +10,21 @@ jobs:
     with:
       make_build_target: "release"
     secrets: inherit
-#    outputs:
-#      package_name: ${{ needs.build_all.outputs.package_name }}
-#      build_version: ${{ needs.build_all.outputs.package_version }}
-#      build_artifacts_names: ${{ needs.build_all.outputs.build_artifacts_names }}
 
 
   release:
     name: Make Release
     needs: call_build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Show tests
-        run: |
-          echo needs.call_build.outputs.test1=${{ needs.call_build.outputs.test1 }}
-          echo needs.call_build.outputs.test2=${{ needs.call_build.outputs.test2 }}
-
-      - name: Show artifacts
-        run: echo needs.call_build.outputs.build_artifacts_names=${{ needs.call_build.outputs.build_artifacts_names }}
+      - uses: actions/checkout@v3
 
       - name: Show package name and version
         run: |
           echo needs.call_build.outputs.package_name=${{ needs.call_build.outputs.package_name }}
           echo needs.call_build.outputs.package_version=${{ needs.call_build.outputs.package_version }}
-
-      - name: Create tag
-        uses: rickstaa/action-create-tag@v1
-        with:
-          tag: "v${{ needs.call_build.outputs.package_version }}"
 
       - name: Make artifacts directory
         run: mkdir github_artifacts
@@ -48,16 +33,27 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: github_artifacts
-          name: ${{ needs.call_build.outputs.build_artifacts_names }}
 
       - name: Check for files
-        run: ls -l . github_artifacts
+        run: |
+          ls -l .
+          ls -lR github_artifacts
 
-      - name: Move release description if it exists
-        run: $([[ ! -f github_artifacts/release_description ]] || mv github_artifacts/release_description .)
+      - name: Find release description files, if any
+        id: rel_desc_files
+        shell: bash
+        run: |
+          shopt -s nullglob
+          rel_desc_files=(github_artifacts/*/release_description)
+          rel_desc_file="${rel_desc_files[0]}" >> $GITHUB_OUTPUT
 
-      - name: Set rel_desc_file
-        run: echo "rel_desc_file=$([[ -f release_description ]] && echo release_description || echo /dev/null)" >> $GITHUB_ENV
+      - name: Show rel_desc_file
+        run: echo "rel_desc_file=${{ steps.rel_desc_files.output.rel_desc_file }}"
+
+      - name: Create tag
+        uses: rickstaa/action-create-tag@v1
+        with:
+          tag: "v${{ needs.call_build.outputs.package_version }}"
 
       - uses: ncipollo/release-action@v1
         with:
@@ -65,5 +61,5 @@ jobs:
           makeLatest: true
           name: "Release ${{ needs.call_build.outputs.package_version }}"
           tag: "v${{ needs.call_build.outputs.package_version }}"
-          bodyFile: ${{ env.rel_desc_file }}
-          artifacts: github_artifacts/*
+          bodyFile: "${{ steps.rel_desc_files.output.rel_desc_file }}"
+          artifacts: github_artifacts/*/*.tar.gz
