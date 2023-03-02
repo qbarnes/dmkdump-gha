@@ -67,5 +67,5 @@ show_version:
 	@echo $(VERSION)
 
 
-.PHONY: all release clean clobber distclean show_product show_version FORCE
+.PHONY: all release clean clobber distclean show_package show_version FORCE
 .DELETE_ON_ERROR:

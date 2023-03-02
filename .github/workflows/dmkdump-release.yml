@@ -1,3 +1,14 @@
+#
+# Call dmkdump-build to make build artifacts, release those
+# artifacts for all supported platforms, tag the build, and publish
+# a new release.
+#
+# If a "release_description" file exists in one of the release
+# tarballs, use its contents for the release description text,
+# otherwise, remember to edit the release and update its
+# description.
+#
+
 name: Release dmkdump
 
 on:
@@ -55,7 +66,8 @@ jobs:
         with:
           tag: "v${{ needs.call_build.outputs.package_version }}"
 
-      - uses: ncipollo/release-action@v1
+      - name: Publish release
+        uses: ncipollo/release-action@v1
         with:
           artifactErrorsFailBuild: true
           makeLatest: true

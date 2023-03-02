@@ -1,3 +1,8 @@
+#
+# Build releases of dmkdump for all supported platforms and upload
+# their release artifacts them.
+#
+
 name: Build dmkdump
 
 on:
