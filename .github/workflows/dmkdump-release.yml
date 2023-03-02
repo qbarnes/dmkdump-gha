@@ -45,12 +45,10 @@ jobs:
         with:
           path: github_artifacts
 
-      - name: Check for files
-        run: |
-          ls -l .
-          ls -lR github_artifacts
+      - name: Show downloaded artifacts
+        run: ls -lR github_artifacts
 
-      - name: Find release description files, if any
+      - name: Find release description, if any
         id: rel_desc_files
         shell: bash
         run: |
@@ -58,10 +56,10 @@ jobs:
           rel_desc_files=(github_artifacts/*/release_description)
           rel_desc_file="${rel_desc_files[0]}" >> $GITHUB_OUTPUT
 
-      - name: Show rel_desc_file
+      - name: Show release description file, if any
         run: echo "rel_desc_file=${{ steps.rel_desc_files.output.rel_desc_file }}"
 
-      - name: Create tag
+      - name: Create tag for release
         uses: rickstaa/action-create-tag@v1
         with:
           tag: "v${{ needs.call_build.outputs.package_version }}"
