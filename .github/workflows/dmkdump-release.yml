@@ -1,11 +1,11 @@
 #
 # Call dmkdump-build to make build artifacts, release those
-# artifacts for all supported platforms, tag the build, and publish
-# a new release.
+# artifacts for all supported platforms, tag the build from
+# product.mk's VERSION, and publish the new release.
 #
 # If a "release_description" file exists in one of the release
 # tarballs, use its contents for the release description text,
-# otherwise, remember to edit the release and update its
+# otherwise, remember to edit the release yourself and update its
 # description.
 #
 

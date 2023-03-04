@@ -1,6 +1,6 @@
 #
 # Build releases of dmkdump for all supported platforms and upload
-# their release artifacts them.
+# their release artifacts.
 #
 
 name: Build dmkdump
